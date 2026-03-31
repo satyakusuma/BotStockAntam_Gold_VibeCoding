@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AssetType {
+  EMAS
+  SAHAM
+  DEPOSITO
+  PROPERTI
+  LAINNYA
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  name           String
+  email          String   @unique
+  passwordHash   String
+  telegramToken  String?
+  telegramChatId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  assets             Asset[]
+  monitoredBoutiques MonitoredBoutique[]
+  notifications      Notification[]
+}
+
+model Asset {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  name          String
+  type          AssetType
+  quantity      Float
+  purchasePrice Float
+  currentPrice  Float?
+  purchaseDate  DateTime
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GoldPriceHistory {
+  id         Int      @id @default(autoincrement())
+  weightGram Float
+  buyPrice   BigInt
+  sellPrice  BigInt
+  recordedAt DateTime @default(now())
+
+  @@index([weightGram, recordedAt])
+}
+
+model MonitoredBoutique {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  boutiqueId   String
+  boutiqueName String
+  weightGram   Float
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id      Int      @id @default(autoincrement())
+  userId  Int
+  type    String
+  message String
+  sentAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
